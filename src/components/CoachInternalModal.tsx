@@ -429,17 +429,41 @@ export const CoachInternalModal: React.FC<CoachInternalModalProps> = ({
                 </p>
               </div>
 
+              {/* Connected Target Sheet Info */}
+              <div className="bg-emerald-50/80 border border-emerald-200 rounded-xl p-3 text-xs flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider">
+                    Target Spreadsheet
+                  </div>
+                  <div className="font-bold text-emerald-950 text-sm">
+                    Master Coach Application
+                  </div>
+                  <div className="text-emerald-700 font-mono text-[11px] truncate max-w-[280px] sm:max-w-md">
+                    ID: 1vEilcKSMLKNJ45iH9TuHGhIAlbWhkyZPrgUarGuBtCI
+                  </div>
+                </div>
+                <a
+                  href="https://docs.google.com/spreadsheets/d/1vEilcKSMLKNJ45iH9TuHGhIAlbWhkyZPrgUarGuBtCI/edit"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold flex items-center gap-1 hover:bg-emerald-500 transition shadow-xs text-xs flex-shrink-0"
+                >
+                  <span>Open Sheet</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+
               {/* 3 Step Setup Guide */}
               <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-4 space-y-3">
                 <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider">
-                  Quick 1-Minute Setup Guide
+                  Quick 1-Minute Setup Guide for Deepanshu
                 </h4>
-                <ol className="text-xs text-neutral-700 space-y-2 list-decimal list-inside">
+                <ol className="text-xs text-neutral-700 space-y-2.5 list-decimal list-inside">
                   <li>
-                    Open your Google Sheet &rarr; Click <strong>Extensions</strong> in the top menu &rarr; Click <strong>Apps Script</strong>.
+                    In your open tab for <strong>Master Coach Application</strong>, click <strong>Extensions</strong> (top menu) &rarr; <strong>Apps Script</strong>.
                   </li>
                   <li>
-                    Replace everything in the editor with this script:
+                    Select and delete any default code inside the editor, then paste this script:
                     <div className="mt-1.5 flex items-center gap-2">
                       <button
                         type="button"
@@ -452,14 +476,15 @@ export const CoachInternalModal: React.FC<CoachInternalModalProps> = ({
                     </div>
                   </li>
                   <li>
-                    Click <strong>Deploy &rarr; New deployment</strong> &rarr; Select type <strong>Web app</strong>. Set:
-                    <ul className="list-disc list-inside pl-4 mt-1 text-[11px] text-neutral-600 space-y-0.5">
-                      <li><strong>Execute as:</strong> Me (your email)</li>
-                      <li><strong>Who has access:</strong> Anyone</li>
-                    </ul>
+                    Click the blue <strong>Deploy</strong> button (top right) &rarr; <strong>New deployment</strong>.
+                    <div className="mt-1 pl-4 text-[11px] text-neutral-600 space-y-0.5">
+                      <div>&bull; Click the gear icon next to "Select type" &rarr; Choose <strong>Web app</strong></div>
+                      <div>&bull; <strong>Execute as:</strong> Me (<code>deepanshubagde@gmail.com</code>)</div>
+                      <div>&bull; <strong>Who has access:</strong> <span className="font-bold text-neutral-900">Anyone</span> (allows form visitors to write)</div>
+                    </div>
                   </li>
                   <li>
-                    Click <strong>Deploy</strong> and copy the <strong>Web App URL</strong> (ends in <code>/exec</code>), then paste it below:
+                    Click <strong>Deploy</strong>, copy the generated <strong>Web app URL</strong> (ends in <code>/exec</code>), and paste it below:
                   </li>
                 </ol>
               </div>

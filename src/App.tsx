@@ -275,7 +275,7 @@ export default function App() {
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-white text-neutral-900 flex flex-col selection:bg-amber-500 selection:text-white">
       {/* Header with small, short and sweet logo */}
-      <Header />
+      <Header onOpenCoachModal={() => setIsCoachModalOpen(true)} />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-8">

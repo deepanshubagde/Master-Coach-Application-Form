@@ -99,8 +99,12 @@ export function saveToken(token: string, expiresInSeconds: number = 3600): void 
   }
 }
 
+export const DEFAULT_SPREADSHEET_ID = '1vEilcKSMLKNJ45iH9TuHGhIAlbWhkyZPrgUarGuBtCI';
+export const DEFAULT_SPREADSHEET_NAME = 'Master Coach Application';
+export const DEFAULT_SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/1vEilcKSMLKNJ45iH9TuHGhIAlbWhkyZPrgUarGuBtCI/edit';
+
 /**
- * Get stored connected sheet info.
+ * Get stored connected sheet info, defaulting to Deepanshu's Master Coach Application sheet.
  */
 export function getStoredSheetInfo(): ConnectedSheetInfo | null {
   try {
@@ -111,7 +115,11 @@ export function getStoredSheetInfo(): ConnectedSheetInfo | null {
   } catch {
     // ignore
   }
-  return null;
+  return {
+    id: DEFAULT_SPREADSHEET_ID,
+    name: DEFAULT_SPREADSHEET_NAME,
+    url: DEFAULT_SPREADSHEET_URL,
+  };
 }
 
 /**
@@ -158,7 +166,8 @@ export function saveWebhookUrl(url: string): void {
 export const GOOGLE_APPS_SCRIPT_CODE = `function doPost(e) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName("Applications") || ss.getActiveSheet();
+    // Support Sheet1 or Applications or the active tab
+    var sheet = ss.getSheetByName("Sheet1") || ss.getSheetByName("Applications") || ss.getActiveSheet();
 
     // Create header row if empty
     if (sheet.getLastRow() === 0) {
@@ -190,7 +199,9 @@ export const GOOGLE_APPS_SCRIPT_CODE = `function doPost(e) {
       data = JSON.parse(e.postData.contents);
     }
 
-    var serial = sheet.getLastRow();
+    // Determine row serial number (1, 2, 3...)
+    var lastRow = sheet.getLastRow();
+    var serial = lastRow > 0 ? lastRow : 1;
     if (data.serialNumber) {
       serial = data.serialNumber;
     }
@@ -223,7 +234,7 @@ export const GOOGLE_APPS_SCRIPT_CODE = `function doPost(e) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", error: err.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
   }
-}`;
+};`;
 
 /**
  * Request OAuth token from Google Identity Services.
@@ -371,42 +382,49 @@ export async function findOrCreateMasterCoachSheet(token: string): Promise<Conne
  * Make sure the sheet has the required header row.
  */
 export async function ensureHeaders(spreadsheetId: string, token: string): Promise<void> {
-  try {
-    // Check if row 1 already has values
-    const checkRes = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Applications!A1:R1`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-
-    let needsHeaders = true;
-    if (checkRes.ok) {
-      const data = await checkRes.json();
-      if (data.values && data.values.length > 0 && data.values[0].length > 0) {
-        needsHeaders = false;
-      }
-    }
-
-    if (needsHeaders) {
-      await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Applications!A1:R1?valueInputOption=USER_ENTERED`,
+  const possibleRanges = ['Sheet1!A1:S1', 'Applications!A1:S1', 'A1:S1'];
+  for (const range of possibleRanges) {
+    try {
+      const checkRes = await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}`,
         {
-          method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            range: 'Applications!A1:R1',
-            majorDimension: 'ROWS',
-            values: [SHEET_HEADERS],
-          }),
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
+
+      let needsHeaders = true;
+      if (checkRes.ok) {
+        const data = await checkRes.json();
+        if (data.values && data.values.length > 0 && data.values[0].length > 0) {
+          needsHeaders = false;
+        }
+      }
+
+      if (needsHeaders) {
+        const putRes = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`,
+          {
+            method: 'PUT',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              range: range,
+              majorDimension: 'ROWS',
+              values: [SHEET_HEADERS],
+            }),
+          }
+        );
+        if (putRes.ok) {
+          return;
+        }
+      } else {
+        return;
+      }
+    } catch {
+      // try next range
     }
-  } catch (err) {
-    console.warn('Could not check or set headers:', err);
   }
 }
 
